@@ -1,0 +1,12 @@
+
+\.VSCodeCounter/
+
+\.vscode/ipch/
+
+bin/
+
+bin-int/
+
+Makefile
+
+p2\.make
