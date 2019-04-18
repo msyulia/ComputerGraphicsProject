@@ -5,10 +5,12 @@
             "includePath": [
                 "${workspaceFolder}/src/**",
                 "${workspaceFolder}/vendor/**",
-                "/usr/include"
+                "/usr/include",
+                "usr/lib"
             ],
             "defines": [
-                "GK_LINUX_BUILD"
+                "GK_LINUX_BUILD",
+                "GK_OSX_BUILD"
             ],
             "compilerPath": "/usr/bin/g++",
             "cStandard": "c11",

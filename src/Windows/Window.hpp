@@ -5,11 +5,17 @@
 
 struct WindowSize
 {
+    WindowSize(uint32_t width, 
+               uint32_t height) : Width(width), 
+                                  Height(height) {}
     uint32_t Width, Height;
 };
 
 struct WindowPosition
 {
+    WindowPosition(uint32_t x, 
+                   uint32_t y) : X(x), 
+                                 Y(y) {}
     uint32_t X, Y;
 };
 

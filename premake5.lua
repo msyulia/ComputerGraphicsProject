@@ -12,11 +12,11 @@ project "p2"
    language "C++"
    cppdialect "C++17"
 
-   targetdir ("./bin/" .. outputdir)
-   objdir ("./bin-int/" .. outputdir)
+   targetdir ("./bin/" .. "%{cfg.system}/" .. outputdir)
+   objdir ("./bin-int/" .. "%{cfg.system}/" .. outputdir)
 
    links {
-      "SDL2",
+     "SDL2",
    }
 
    includedirs {
@@ -32,6 +32,11 @@ project "p2"
    filter "system:linux"
       defines {
          "GK_LINUX_BUILD"
+      }
+   
+   filter "system:macosx"
+      defines {
+         "GK_OSX_BUILD"
       }
 
    filter "configurations:Debug"
