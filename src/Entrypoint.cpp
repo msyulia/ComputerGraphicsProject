@@ -1,5 +1,6 @@
 #include "Application.hpp"
 #include <iostream>
+#include <SDL2/SDL.h>
 
 int main(int argc, char **argv)
 {
@@ -10,7 +11,7 @@ int main(int argc, char **argv)
     }
     else
     {
-        std::cout << "Couldn't create appliaction, not supported platform" 
+        std::cout << "Couldn't create appliaction, not supported platform"
                   << std::endl;
     }
 

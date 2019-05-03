@@ -24,13 +24,15 @@ class Window
 public:
     virtual ~Window() {}
 
+    static Window* Create(std::string title);
+
     virtual uint32_t GetID() = 0;
 
     virtual std::string GetTitle() = 0;
     virtual void SetTitle(std::string title) = 0;
 
     virtual WindowPosition GetPosition() = 0;
-    virtual void SetWindowPosition(uint32_t x, uint32_t y) = 0;
+    virtual void SetPosition(uint32_t x, uint32_t y) = 0;
 
     virtual WindowSize GetSize() = 0;
     virtual void SetSize(uint32_t width, uint32_t height) = 0;

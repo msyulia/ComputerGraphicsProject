@@ -21,7 +21,7 @@ project "p2"
 
    includedirs {
       "./src/**",
-      "%{prj.name}/vendor/"
+      "./vendor/"
    }
 
    files { 

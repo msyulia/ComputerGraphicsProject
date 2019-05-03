@@ -11,7 +11,7 @@ private:
     std::string windowTitle;
 
 public:
-    OSXWindow();
+    OSXWindow(std::string title);
     ~OSXWindow();
 
     uint32_t GetID();
@@ -20,7 +20,7 @@ public:
     void SetTitle(std::string title);
 
     WindowPosition GetPosition();
-    void SetWindowPosition(uint32_t x, uint32_t y);
+    void SetPosition(uint32_t x, uint32_t y);
 
     WindowSize GetSize();
     void SetSize(uint32_t width, uint32_t height);

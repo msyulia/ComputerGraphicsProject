@@ -1,5 +1,19 @@
 #include "OSXWindow.hpp"
 
+OSXWindow::OSXWindow(std::string title)
+{
+    auto flags = SDL_WINDOW_INPUT_GRABBED;
+
+    this->sdlWindow = SDL_CreateWindow(title.c_str(),
+                      SDL_WINDOWPOS_CENTERED, 
+                      SDL_WINDOWPOS_CENTERED,
+                      800, 600,
+                      flags);
+
+}
+
+OSXWindow::~OSXWindow() {}
+
 uint32_t OSXWindow::GetID()
 {
     return SDL_GetWindowID(this->sdlWindow);
@@ -33,7 +47,7 @@ WindowPosition OSXWindow::GetPosition()
     return win_pos;
 }
 
-void OSXWindow::SetWindowPosition(uint32_t x, uint32_t y)
+void OSXWindow::SetPosition(uint32_t x, uint32_t y)
 {
     SDL_SetWindowPosition(this->sdlWindow, x, y);
 }
@@ -49,5 +63,9 @@ WindowSize OSXWindow::GetSize()
     delete width, height;
 
     return win_size;
+}
 
+void OSXWindow::SetSize(uint32_t width, uint32_t height) 
+{
+    SDL_SetWindowSize(this->sdlWindow, width, height);
 }

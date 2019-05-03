@@ -9,4 +9,4 @@ bin-int/
 
 Makefile
 
-p2\.make
+*.make
