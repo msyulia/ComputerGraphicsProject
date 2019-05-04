@@ -4,6 +4,8 @@
 Window *Window::Create(std::string title)
 {
     #if GK_OSX_BUILD
-        return new OSXWindow(title);
+        auto win = new OSXWindow(title); 
+        win->renderer = Renderer::Create();
+        return win;
     #endif
 }

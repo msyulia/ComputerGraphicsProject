@@ -1,30 +1,39 @@
 #ifndef GK_WINDOW
 #define GK_WINDOW
 
+#include "Renderer.hpp"
 #include <string>
 
 struct WindowSize
 {
-    WindowSize(uint32_t width, 
-               uint32_t height) : Width(width), 
+    WindowSize(uint32_t width,
+               uint32_t height) : Width(width),
                                   Height(height) {}
     uint32_t Width, Height;
 };
 
 struct WindowPosition
 {
-    WindowPosition(uint32_t x, 
-                   uint32_t y) : X(x), 
+    WindowPosition(uint32_t x,
+                   uint32_t y) : X(x),
                                  Y(y) {}
     uint32_t X, Y;
 };
 
 class Window
 {
-public:
-    virtual ~Window() {}
+protected:
+    Renderer *renderer;
 
-    static Window* Create(std::string title);
+public:
+    virtual ~Window()
+    {
+        delete renderer;
+    }
+
+    static Window *Create(std::string title);
+
+    Renderer *GetRenderer() { return this->renderer; }
 
     virtual uint32_t GetID() = 0;
 

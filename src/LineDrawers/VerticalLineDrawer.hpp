@@ -6,16 +6,18 @@
 class VerticalLineDrawer : public LineDrawer
 {
 public:
-    void DrawLine(Renderer *renderer,
-                  int32_t x0,
-                  int32_t y0,
-                  int32_t x1,
-                  int32_t y1) override
+    std::vector<VectorInt2D> DrawLine(int32_t x0,
+                                      int32_t y0,
+                                      int32_t x1,
+                                      int32_t y1) override
     {
+        auto result = std::vector<VectorInt2D>();
         for (size_t i = y0; i <= y1; i++)
         {
-            renderer->SetPixel(x0, i);
+            //renderer->SetPixel(x0, i);
+            result.push_back(VectorInt2D(x0, i));
         }
+        return result;
     }
 };
 

@@ -1,6 +1,13 @@
 #include "Application.hpp"
 #include <iostream>
-#include <SDL2/SDL.h>
+
+class Test
+{
+public:
+    Test(/* args */){}
+    ~Test(){}
+    int x;
+};
 
 int main(int argc, char **argv)
 {

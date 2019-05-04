@@ -1,17 +1,17 @@
-#ifndef GK_LINUXRENDERER
-#define GK_LINUXRENDERER
+#ifndef GK_OSXRENDERER
+#define GK_OSXRENDERER
 
 #include <SDL2/SDL.h>
 #include "Renderer.hpp"
 
-class LinuxRenderer : public Renderer
+class OSXRenderer : public Renderer
 {
 private:
     SDL_Renderer *renderer;
 
 public:
-    LinuxRenderer();
-    ~LinuxRenderer();
+    OSXRenderer();
+    ~OSXRenderer();
 
     void SetDrawColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
     void SetPixel(int32_t x, int32_t y);
