@@ -1,16 +1,11 @@
 #include "Application.hpp"
 #include <iostream>
+#include <ctime>
+#include <cstdlib>
 
-class Test
+int main(int argc, char* args[])
 {
-public:
-    Test(/* args */){}
-    ~Test(){}
-    int x;
-};
-
-int main(int argc, char **argv)
-{
+    srand(time(NULL)); // Initialize random number generator
     auto app = Application::Create();
     if (app != nullptr)
     {
@@ -21,6 +16,6 @@ int main(int argc, char **argv)
         std::cout << "Couldn't create appliaction, not supported platform"
                   << std::endl;
     }
-
+    delete app;
     return 0;
 }

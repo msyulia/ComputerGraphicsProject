@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 echo 'Clearing build directories...'
 
 if [ -d "./bin" ]; then

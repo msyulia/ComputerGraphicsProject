@@ -1,7 +1,7 @@
 workspace "GK_Projects"
    architecture "x64"
 
-   configurations { 
+   configurations {
       "Debug",
    }
 
@@ -11,6 +11,8 @@ project "p2"
    kind "ConsoleApp"
    language "C++"
    cppdialect "C++17"
+   toolset "clang"
+   buildoptions {"-Wall"}
 
    targetdir ("./bin/" .. "%{cfg.system}/" .. outputdir)
    objdir ("./bin-int/" .. "%{cfg.system}/" .. outputdir)
@@ -24,16 +26,16 @@ project "p2"
       "./vendor/"
    }
 
-   files { 
+   files {
       "./src/**.hpp",
-      "./src/**.cpp" 
+      "./src/**.cpp"
    }
 
    filter "system:linux"
       defines {
          "GK_LINUX_BUILD"
       }
-   
+
    filter "system:macosx"
       defines {
          "GK_OSX_BUILD"
@@ -42,5 +44,5 @@ project "p2"
    filter "configurations:Debug"
       symbols "On"
       defines {
-          "DEBUG" 
+          "DEBUG"
       }
