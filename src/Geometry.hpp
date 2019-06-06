@@ -5,13 +5,12 @@
 #include <memory>
 #include <algorithm>
 #include <unordered_set>
-
 struct Point2D
 {
 public:
-    int x, y;
+    double x, y;
 
-    Point2D(int newX = 0, int newY = 0)
+    Point2D(double newX = 0, double newY = 0)
     {
         x = newX,
         y = newY;
@@ -62,6 +61,11 @@ struct Point3D
                Z == other.Z;
     }
 
+    Point3D operator*(double scalar)
+    {
+        return Point3D(X * scalar, Y * scalar, Z * scalar);
+    }
+
     Point3D operator+(Point3D other)
     {
         return Point3D(X + other.X, Y + other.Y, Z + other.Z);
@@ -70,6 +74,11 @@ struct Point3D
     Point3D operator-(Point3D other)
     {
         return Point3D(X - other.X, Y - other.Y, Z - other.Z);
+    }
+
+    Point3D operator-(Point2D other)
+    {
+        return Point3D(X - other.x, Y - other.y, Z);
     }
 
     double Dot(Point3D other)
@@ -98,21 +107,39 @@ struct Point3D
 
 struct Color
 {
+private:
+    double validate(double c)
+    {
+        return std::clamp(c, 0.0, 1.0);
+    }
+
 public:
-    uint8_t R, G, B;
+    double R, G, B;
     Color() = default;
-    bool isNormalized;
-    Color(uint8_t R, uint8_t G, uint8_t B) : R(R), G(G), B(B) {}
+    Color(double R, double G, double B) : R(R), G(G), B(B) {}
     Color operator*(double scalar)
     {
-        isNormalized = false;
         double _R = R;
         double _G = G;
         double _B = B;
-        uint8_t __R = std::clamp((int)std::round(_R * scalar), 0, 255);
-        uint8_t __G = std::clamp((int)std::round(_G * scalar), 0, 255);
-        uint8_t __B = std::clamp((int)std::round(_B * scalar), 0, 255);
+        double __R = validate(_R * scalar);
+        double __G = validate(_G * scalar);
+        double __B = validate(_B * scalar);
         return Color(__R, __G, __B);
+    }
+    Color operator*(Color other)
+    {
+        Color result = Color(validate(R * other.R),
+                             validate(G * other.G),
+                             validate(B * other.B));
+        return result;
+    }
+    Color operator+(Color other)
+    {
+        Color result = Color(validate(R + other.R),
+                             validate(G + other.G),
+                             validate(B + other.B));
+        return result;
     }
     explicit operator Point3D() const
     {
@@ -120,7 +147,15 @@ public:
     }
     static Color Random()
     {
-        return Color(rand() % 256, rand() % 256, rand() % 256);
+        return Color((rand() % 256) / 255.0, (rand() % 256) / 255.0, (rand() % 256) / 255.0);
+    }
+    static Color White()
+    {
+        return Color(1.0, 1.0, 1.0);
+    }
+    static Color Black()
+    {
+        return Color(0.0, 0.0, 0.0);
     }
 };
 
@@ -143,13 +178,22 @@ public:
         coeffC = coeff.Z;
         coeffD = (-1) * (coeffA * x1 + coeffB * y1 + coeffC * z1);
         Normal = coeff;
+        Normal.Normalize();
     }
     Point3D NormalToPolygon()
     {
-        return {
-            (B.Y - A.Y) * (C.Z - B.Z) - (B.Z - A.Z) * (C.Y - B.Y),
-            (B.X - A.X) * (C.Z - B.Z) - (B.Z - A.Z) * (C.X - B.X),
-            (B.X - A.X) * (C.Y - B.Y) - (B.Y - A.Y) * (C.X - B.X)};
+        return { // (B - A) x (C - A)
+            (B.Y - A.Y) * (C.Z - A.Z) - (B.Z - A.Z) * (C.Y - A.Y),
+            (-1) * ((B.X - A.X) * (C.Z - A.Z) - (B.Z - A.Z) * (C.X - A.X)),
+            (B.X - A.X) * (C.Y - A.Y) - (B.Y - A.Y) * (C.X - A.X)};
+    }
+    void FlipNormal()
+    {
+        Normal = Normal * (-1);
+        coeffA *= -1;
+        coeffB *= -1;
+        coeffC *= -1;
+        coeffD *= -1;
     }
 };
 
@@ -255,17 +299,18 @@ public:
             {1, 1, 1},
         });
         auto indices = IndexBuffer({0, 1, 3,
+                                    2, 0, 3,
                                     1, 3, 5,
-                                    0, 1, 5,
-                                    0, 2, 6,
-                                    2, 3, 7,
+                                    3, 5, 7,
                                     5, 6, 7,
-                                    0, 2, 3,
-                                    7, 3, 5,
-                                    0, 4, 5,
+                                    4, 5, 6,
                                     0, 4, 6,
-                                    2, 6, 7,
-                                    5, 6, 4});
+                                    0, 2, 6,
+                                    0, 1, 5,
+                                    0, 4, 5,
+                                    2, 3, 6,
+                                    3, 6, 7,
+                                    });
 
         return new Mesh(vertices, indices);
     }

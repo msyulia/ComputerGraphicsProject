@@ -12,12 +12,12 @@ class GameObject
 public:
     Mesh *mesh;
     Transform transform;
-    Color Ambient, Diffuse, Specular;
+    Color ObjectColor;
     GameObject()
     {
         mesh = Mesh::CreateCube();
         transform = Transform::FromMesh(*mesh);
-        Ambient = Color(0.1*255, 0.3 * 255, 0.1* 255);
+        ObjectColor = Color(1, 1, 1);
     }
     ~GameObject() { delete mesh; }
 
@@ -117,7 +117,7 @@ private:
             a21, a22, a23, 0,
             a31, a32, a33, 0,
             0, 0, 0, 1;
-        return rotationMatrix;   
+        return rotationMatrix;
     }
 };
 

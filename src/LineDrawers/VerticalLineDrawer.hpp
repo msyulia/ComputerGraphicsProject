@@ -11,6 +11,8 @@ public:
                                       int32_t x1,
                                       int32_t y1) override
     {
+        if (y1 < y0)
+            std::swap(y1, y0);
         auto result = std::vector<Point2D>();
         for (size_t i = y0; i <= y1; i++)
         {

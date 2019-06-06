@@ -24,17 +24,23 @@ public:
     Color color;
     LightSource() = default;
     LightSource(Point3D position, Color color) : position(position), color(color) {}
+    void Translate(const double offsetX, const double offsetY, const double offsetZ)
+    {
+        position.X += offsetX;
+        position.Y += offsetY;
+        position.Z += offsetZ;
+    }
 };
 
-class GlobalLightSources 
+class GlobalLightSources
 {
 public:
     std::vector<LightSource> data;
     GlobalLightSources() {}
     ~GlobalLightSources() {}
 
-    virtual void Add(LightSource &newObject) {}
-    virtual void Remove(LightSource &object) {}
+    void Add(LightSource &newObject) { data.emplace_back(newObject); }
+    void Remove(LightSource &object) {}
 };
 
 class FrameBuffer
@@ -288,15 +294,9 @@ public:
         }
     }
 
-    virtual void SetDrawColor(uint8_t r,
-                              uint8_t g,
-                              uint8_t b,
-                              uint8_t a) = 0;
+    virtual void SetDrawColor(Color c) = 0;
 
-    virtual void SetBackgroundColor(uint8_t r,
-                                    uint8_t g,
-                                    uint8_t b,
-                                    uint8_t a) = 0;
+    virtual void SetBackgroundColor(Color c) = 0;
 
     virtual Color GetBackgroundColor() = 0;
 
@@ -340,15 +340,19 @@ public:
         SDL_DestroyRenderer(sdlRenderer);
     }
 
-    void SetDrawColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+    void SetDrawColor(Color c)
     {
-        SDL_SetRenderDrawColor(this->sdlRenderer, r, g, b, a);
+        SDL_SetRenderDrawColor(this->sdlRenderer,
+                               std::round(c.R * 255),
+                               std::round(c.G * 255),
+                               std::round(c.B * 255),
+                               255);
     }
 
-    void SetBackgroundColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+    void SetBackgroundColor(Color c)
     {
-        backgroundColor = {r, g, b};
-        SetDrawColor(r, g, b, a);
+        backgroundColor = c;
+        SetDrawColor(c);
         Clear();
     }
 

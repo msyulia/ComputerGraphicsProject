@@ -51,6 +51,16 @@ public:
     }
 };
 
+struct Frame
+{
+    std::shared_ptr<DepthBuffer> depthBuffer;
+    std::shared_ptr<FrameBuffer> frameBuffer;
+
+    Frame(std::shared_ptr<DepthBuffer> depthBuffer,
+          std::shared_ptr<FrameBuffer> frameBuffer) : depthBuffer(depthBuffer),
+                                                      frameBuffer(frameBuffer) {}
+};
+
 class Camera
 {
 public:
@@ -65,19 +75,19 @@ public:
     }
     ~Camera() {}
 
-    std::shared_ptr<DepthBuffer> GetDepthBuffer(Renderer &ren, GameObjectRegistry &registry)
+    Frame GetNewFrame(Renderer &ren, GameObjectRegistry &registry, GlobalLightSources &lights)
     {
         auto size = ren.window->GetSize();
         //Initialize depth buffer
         auto depthBuffer = std::shared_ptr<DepthBuffer>(new DepthBuffer(size.Width, size.Height));
         depthBuffer->Fill(std::numeric_limits<double>::max());
         auto frameBuffer = std::shared_ptr<FrameBuffer>(new FrameBuffer(size.Width, size.Height));
+        frameBuffer->Fill(Color::White());
 
         for (auto &gameObject : registry)
         {
             auto indexBuffer = gameObject->mesh->indexBuffer.indices;
             auto vertexBuffer = gameObject->mesh->vertexBuffer.vertices;
-
             double depth;
             //Foreach polygon in game object
             for (auto i = 0; i < indexBuffer.size(); i += 3)
@@ -93,42 +103,94 @@ public:
                 Point2D v3Proj = GetPointProjection(v3);
 
                 auto currentPolygon2D = ren.GetScreenPointsFromTriangleProjection(
-                    Polygon2D(v1Proj, v2Proj, v3Proj)
-                );
+                    Polygon2D(v1Proj, v2Proj, v3Proj));
 
+                if (i == 24 || i == 6 || i == 15 || i == 18 || i == 33)
+                {
+                    currentPolygon.FlipNormal();
+                }
+            
                 for (auto &point : currentPolygon2D)
                 {
                     if (point.x >= size.Width || point.y >= size.Height)
                         continue;
                     int x = point.x;
                     int y = point.y;
-                    depth = (-1) * (x * currentPolygon.coeffA + y * currentPolygon.coeffB + currentPolygon.coeffD) / currentPolygon.coeffC;
-
+                    depth = (-1) * ((x * currentPolygon.coeffA) + (y * currentPolygon.coeffB) + currentPolygon.coeffD) / currentPolygon.coeffC;
+                    
                     if (depth < (*depthBuffer)(x, y))
                     {
                         (*depthBuffer)(x, y) = depth;
-                        //Calculate color of pixel in frame buffer
-                        //Color newColor = 
-                        //(*frameBuffer)(x,y)                        
+                        double ambientStrength = 0.1;
+                        double specularStrenth = 0.5;
+                        double shininess = 256;
+                        Color ambientColor = Color((99.0/255.0), (159.0/255.0), 1.0) * ambientStrength; //(Blueish tint)
+                        Color diffuse = Color::Black(), specular = Color::Black();
+                        for (auto &l : lights.data)
+                        {   
+                            auto fragPosition = Point3D(point.x, point.y, depth);
+                            //fragPosition.Normalize();
+
+                            // Diffuse lightning
+                            auto lightDirection = (fragPosition - l.position);
+                            lightDirection.Normalize();
+                            double diff = std::max((currentPolygon.Normal).Dot(lightDirection), 0.0);
+                            diffuse = diffuse + (l.color * diff);
+
+                            //Specular lightning
+                            auto reflect = [](Point3D incidentVector, Point3D normal) {
+                                return incidentVector - ((normal * incidentVector.Dot(normal)) * 2.0);
+                            };
+                            auto viewDir = Point3D(256, 256, 0) - fragPosition; //* (-1);
+                            viewDir.Normalize();
+                            auto reflectDir = reflect((lightDirection), currentPolygon.Normal);
+                            reflectDir.Normalize();
+                            double spec = std::pow(std::max(viewDir.Dot(reflectDir), 0.0), 256);
+                            specular = specular + (l.color * spec * specularStrenth);
+                        }
+                        
+                        Color newColor = (diffuse + ambientColor + specular) * (gameObject->ObjectColor);
+                        (*frameBuffer)(x, y) = newColor;
                     }
                 }
             }
         }
-        return depthBuffer;
+        return Frame(depthBuffer, frameBuffer);
     }
 
-    void DrawDepthBuffer(Renderer &ren, std::shared_ptr<DepthBuffer> buffer)
+    void DrawFrame(Renderer &ren, Frame newFrame)
     {
-        for (int x = 0; x < buffer->size.Width; x++)
+        auto depthBuffer = newFrame.depthBuffer;
+        auto frameBuffer = newFrame.frameBuffer;
+        for (int x = 0; x < depthBuffer->size.Width; x++)
         {
-            for (int y = 0; y < buffer->size.Height; y++)
+            for (int y = 0; y < depthBuffer->size.Height; y++)
             {
-                auto bufferValue = (*buffer)(x, y);
+                auto bufferValue = (*depthBuffer)(x, y);
                 if (bufferValue < std::numeric_limits<double>::max())
                 {
+                    Color c = frameBuffer->operator()(x,y);
+                    ren.SetDrawColor(c);
+                    //ren.SetDrawColor(Color(bufferValue,bufferValue,bufferValue));
                     ren.SetPixel(x, y);
                 }
             }
+        }
+    }
+
+    void DrawModelWithRandomPolygonColors(Renderer &ren, Mesh &mesh)
+    {
+        auto vertices = mesh.vertexBuffer;
+        auto indices = mesh.indexBuffer.indices;
+        for (size_t i = 0; i < indices.size(); i += 3)
+        {
+            Point3D v1 = vertices[indices[i]];
+            Point3D v2 = vertices[indices[i + 1]];
+            Point3D v3 = vertices[indices[i + 2]];
+
+            //ren.SetDrawColor(Color::Random());
+            Polygon p = Polygon(v1,v2,v3);
+            Draw(ren, p);
         }
     }
 
@@ -161,7 +223,7 @@ public:
         }
     }
 
-    void Draw(Renderer &ren, Mesh &mesh)
+    void DrawWireframe(Renderer &ren, Mesh &mesh)
     {
         auto vertices = mesh.vertexBuffer;
         auto indices = mesh.indexBuffer.indices;
@@ -175,15 +237,15 @@ public:
             Point2D v2Proj = GetPointProjection(v2);
             Point2D v3Proj = GetPointProjection(v3);
 
-            ren.SetDrawColor(0, 0, 0, 255);
+            ren.SetDrawColor(Color::Black());
             ren.DrawLine(v1Proj.x, v1Proj.y, v2Proj.x, v2Proj.y);
             ren.DrawLine(v1Proj.x, v1Proj.y, v3Proj.x, v3Proj.y);
             ren.DrawLine(v2Proj.x, v2Proj.y, v3Proj.x, v3Proj.y);
         }
     }
-    void Draw(Renderer &ren, GameObject &object)
+    void DrawWireframe(Renderer &ren, GameObject &object)
     {
-        Draw(ren, *object.mesh);
+        DrawWireframe(ren, *object.mesh);
     }
 
 private:

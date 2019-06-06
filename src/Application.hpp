@@ -23,6 +23,7 @@ class OSXApp : public Application
 {
 private:
     std::unique_ptr<GameObjectRegistry> gameObjectRegistry;
+    std::shared_ptr<GlobalLightSources> lights;
     SDL_Event lastEvent;
     bool isTerminated;
 
@@ -30,6 +31,7 @@ public:
     OSXApp()
     {
         gameObjectRegistry = std::unique_ptr<GameObjectRegistry>(new GameObjectRegistry());
+        lights = std::shared_ptr<GlobalLightSources>(new GlobalLightSources());
         isTerminated = false;
     }
     ~OSXApp()
@@ -51,22 +53,25 @@ public:
     {
         auto mainWindow = Window::Create("Projekt 2", 512, 512);
         auto mainRenderer = Renderer::Create(mainWindow);
-        auto windowSize = mainWindow->GetSize();
 
         clock_t timer;
         double deltaTime = 0.0;
 
+        // Add 2 lights
+        auto light1 = LightSource({256, 0, 100}, Color(0.5, 0.1, 0.9));
+        auto light2 = LightSource({0, 256, 100}, {0.0, 1.0, 0.0});
+        lights->Add(light2);
+        lights->Add(light1);
+
         auto obj = std::shared_ptr<GameObject>(new GameObject());
         gameObjectRegistry->Add(obj);
         obj->Scale(100, 100, 100);
-        obj->Translate(256, 256, 1000);
-        obj->Rotate(30, 30, 10);
+        obj->Translate(256, 256, 300);
 
-        // auto obj1 = std::shared_ptr<GameObject>(new GameObject());
-        // gameObjectRegistry->Add(obj1);
-        // obj1->Translate(150, 175, 10);
-        // obj1->Scale(100, 50, 100);
-        // obj1->Rotate(30, 45, 60);
+        auto obj1 = std::shared_ptr<GameObject>(new GameObject());
+        gameObjectRegistry->Add(obj1);
+        obj1->Scale(100, 50, 100);
+        obj1->Translate(100, 100, 10);
 
         auto cam = Camera();
 
@@ -75,18 +80,22 @@ public:
             timer = std::clock();
 
             HandleEvents();
-            mainRenderer->Clear();
-            mainRenderer->SetBackgroundColor(WHITE);
+            //mainRenderer->Clear();
+            mainRenderer->SetBackgroundColor(Color::White());
 
-            cam.DrawDepthBuffer(*mainRenderer, cam.GetDepthBuffer(*mainRenderer, *gameObjectRegistry));
-            mainRenderer->SetDrawColor(BLACK);
-            cam.Draw(*mainRenderer, *(obj->mesh));
+            auto frame = cam.GetNewFrame(*mainRenderer, *gameObjectRegistry, *lights);
+            cam.DrawFrame(*mainRenderer, frame);
 
-            obj->Rotate(15*deltaTime,15*deltaTime,15*deltaTime);
+            //cam.DrawModelWithRandomPolygonColors(*mainRenderer, *(obj->mesh));
+            //cam.DrawWireframe(*mainRenderer, *(obj->mesh));
 
+            obj->Rotate(15 * deltaTime, 15 * deltaTime,0 );
+            obj1->Rotate(30 * deltaTime, 30 * deltaTime, 30 * deltaTime );
+            light1.Translate(0, 200 * std::sin(timer), 0);
+            light2.Translate(200 * std::sin(timer), 0, 0);
             mainRenderer->Render();
 
-            SDL_Delay(10);
+            //SDL_Delay(10);
             deltaTime = double(clock() - timer) / CLOCKS_PER_SEC;
         }
 
